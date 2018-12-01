@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', loadContent);
 
 function loadContent() {
 
-
   var form = document.querySelector('form');
 
   var textInput = form.querySelector('input[type="text"]');
@@ -10,6 +9,18 @@ function loadContent() {
   var placeForTodos = document.getElementById('events');
 
   var todosArray = [];
+
+  var dragMode = 'insert';
+
+  var swapMode = document.getElementById('swap'),
+      insertMode = document.getElementById('insert');
+  swapMode.addEventListener('change', checkDragMode);
+  insertMode.addEventListener('change', checkDragMode);
+
+
+  function checkDragMode(){
+    if (this.checked) dragMode = this.value;
+  }
 
   form.addEventListener('submit', formSubmit);
 
@@ -136,15 +147,32 @@ function loadContent() {
     ;
 
     if (startElement !== this) {
-      startElement.innerHTML = this.innerHTML;
-      this.innerHTML = e.dataTransfer.getData('text/html');
-      //when copying innerHTML, we loose button events, so event listenet should be added again
-      updateBtnEvents(this);
-      updateBtnEvents(startElement);
+      console.log(dragMode);
+      if (dragMode === 'swap') {
+        //variant 1 - insert dragged element
+        swapElements(this, startElement);
+      }
+      else {
+        // variant 2 - swap elements
+        insertElement(this, startElement);
+      };
     }
     updateTodosArray();
   };
 
+  function insertElement(element1, element2){
+    element1.parentNode.insertBefore(element2, element1.nextSibling);
+  }
+  
+  function swapElements(element1, element2){
+    var swapContainer = element2.innerHTML;
+    element2.innerHTML = element1.innerHTML;
+    element1.innerHTML = swapContainer;
+    //when copying innerHTML, we lost button events, so event listener should be added again
+    updateBtnEvents(element1);
+    updateBtnEvents(element2);
+  }
+  
   function updateBtnEvents(element){
     var innerBtn = element.querySelector('button');
     innerBtn.removeEventListener('click', deleteToDo);
